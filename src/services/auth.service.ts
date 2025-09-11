@@ -1,63 +1,76 @@
-import { User } from "../models/user.model";
-import jwt from "jsonwebtoken";
-import {
-  JWT_SECRET,
-  ACCESS_TOKEN_EXPIRE,
-  REFRESH_TOKEN_EXPIRE,
-} from "../config/jwt";
-import { redisClient } from "../config/redis";
-import { comparePassword } from "../utils/hash";
+import { User } from '../models/user.model';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET, ACCESS_TOKEN_EXPIRE } from '../config/jwt';
+import { redisClient } from '../config/redis';
+import { comparePassword } from '../utils/hash';
 
 export const loginService = async (username: string, password: string) => {
   const user = await User.findOne({ where: { username } });
-  if (!user) throw new Error("username atau password salah");
+  if (!user) throw new Error('username atau password salah');
 
   const isMatch = await comparePassword(password, user.password_hash);
-  if (!isMatch) throw new Error("username atau password salah");
+  if (!isMatch) throw new Error('username atau password salah');
 
+  // Generate access token
   const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
-    expiresIn: ACCESS_TOKEN_EXPIRE,
-  });
-  const refreshToken = jwt.sign({ id: user.id }, JWT_SECRET, {
-    expiresIn: REFRESH_TOKEN_EXPIRE,
+    expiresIn: '1h',
   });
 
-  await redisClient.set(
-    `refresh_${user.id}`,
-    refreshToken,
-    "EX",
-    REFRESH_TOKEN_EXPIRE
-  );
+  // Simpan token di Redis
+  await redisClient.set(`token_${token}`, token, 'EX', ACCESS_TOKEN_EXPIRE);
 
-  return { token, refreshToken, user, expiredAt: Date.now() + 60 * 60 * 1000 };
+  // Ambil data user tanpa password
+  const userData = await User.findOne({
+    where: { username },
+    attributes: [
+      'id',
+      'name',
+      'username',
+      'role',
+      'created_by',
+      'updated_by',
+      'created_at',
+      'updated_at',
+      'deleted_at',
+    ],
+  });
+
+  return {
+    token,
+    user: userData,
+    expiredAt: new Date(Date.now() + ACCESS_TOKEN_EXPIRE * 1000).toISOString(),
+  };
 };
 
 export const refreshService = async (oldToken: string) => {
-  try {
-    const payload: any = jwt.verify(oldToken, JWT_SECRET);
-    const storedToken = await redisClient.get(`refresh_${payload.id}`);
-    if (storedToken !== oldToken) throw new Error("Invalid refresh token");
+  const storedToken = await redisClient.get(`token_${oldToken}`);
+  if (!storedToken) throw new Error('Invalid token');
 
-    const newToken = jwt.sign({ id: payload.id }, JWT_SECRET, {
-      expiresIn: ACCESS_TOKEN_EXPIRE,
-    });
-    const newRefreshToken = jwt.sign({ id: payload.id }, JWT_SECRET, {
-      expiresIn: REFRESH_TOKEN_EXPIRE,
-    });
+  const payload: any = jwt.verify(oldToken, JWT_SECRET);
 
-    await redisClient.set(
-      `refresh_${payload.id}`,
-      newRefreshToken,
-      "EX",
-      REFRESH_TOKEN_EXPIRE
-    );
+  const newToken = jwt.sign({ id: payload.id, role: payload.role }, JWT_SECRET, {
+    expiresIn: '1h',
+  });
 
-    return { token: newToken, refreshToken: newRefreshToken };
-  } catch {
-    throw new Error("Invalid refresh token");
-  }
+  await redisClient.del(`token_${oldToken}`);
+  await redisClient.set(`token_${newToken}`, newToken, 'EX', ACCESS_TOKEN_EXPIRE);
+
+  return {
+    token: newToken,
+    expiredAt: new Date(Date.now() + ACCESS_TOKEN_EXPIRE * 1000).toISOString(),
+  };
 };
 
 export const logoutService = async (userId: number) => {
-  await redisClient.del(`refresh_${userId}`);
+  // Hapus semua token terkait user
+  const keys = await redisClient.keys(`token_*`);
+  for (const key of keys) {
+    const value = await redisClient.get(key);
+    if (value) {
+      const payload: any = jwt.verify(value, JWT_SECRET);
+      if (payload.id === userId) {
+        await redisClient.del(key);
+      }
+    }
+  }
 };

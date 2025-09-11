@@ -1,21 +1,19 @@
-// src/services/audit.service.ts
 import { AuditLog } from '../models/audit_log.model';
 
 export const createAudit = async (
-  actorId: number,
+  actor_id: number,
   entity: string,
-  entityId: number,
+  entity_id: number,
   action: string,
-  before?: any,
-  after?: any,
+  before: object | null = null,
+  after: object | null = null,
 ) => {
-  await AuditLog.create({
-    actor_id: actorId,
+  return await AuditLog.create({
+    actor_id,
     entity,
-    entity_id: entityId,
+    entity_id,
     action,
     before,
     after,
-    created_at: new Date(),
   });
 };
