@@ -1,167 +1,120 @@
 # Backend – Fullstack Technical Test
 
-## Deskripsi
+## 📜 Deskripsi Proyek
+Proyek backend ini adalah sebuah **RESTful API** yang dibangun menggunakan **Node.js 18**, **Express.js**, dan **TypeScript**. Proyek ini dilengkapi dengan berbagai fitur penting seperti otentikasi, manajemen pengguna, dan pencatatan audit. Database yang digunakan adalah **MySQL** dengan **Sequelize ORM**, sementara **Redis** digunakan untuk caching dan manajemen *refresh token*. Proyek ini juga sudah dilengkapi dengan konfigurasi **Docker & Docker-Compose** untuk mempermudah proses pengembangan.
 
-Backend ini dibangun menggunakan:
+---
 
-- **Node.js 18 + Express.js + TypeScript**
-- **MySQL** dengan **Sequelize ORM**
-- **Redis** untuk cache & refresh token
-- **JWT** untuk autentikasi
-- **RBAC** (Role-Based Access Control: admin & user)
-- **Audit Log** untuk semua perubahan data
-- **Export CSV** untuk data user besar
-- **Validasi input** dengan Joi
-- **Rate Limiting** & Logging (Winston)
-- **Docker & Docker-Compose** untuk development environment
+## ✨ Fitur Utama
+- **Autentikasi & Otorisasi**: Menggunakan **JWT** dan **Refresh Token** yang disimpan di Redis. Sistem ini mendukung **RBAC** (Role-Based Access Control) dengan peran **`admin`** dan **`user`**.
+- **Manajemen Pengguna**:
+  - Operasi **CRUD** (Create, Read, Update, Delete) untuk pengguna (khusus `admin`).
+  - Pengguna dapat memperbarui profil mereka sendiri.
+  - Fitur **export data pengguna dalam format CSV** yang dioptimalkan untuk data berukuran besar.
+  - Implementasi **soft delete** pada data pengguna.
+  - Dilengkapi dengan **pagination, filter, dan sorting** untuk daftar pengguna.
+- **Audit Log**:
+  - Semua perubahan data (`CREATE`, `UPDATE`, `DELETE`) secara otomatis dicatat di tabel **`audit_logs`**.
+  - Catatan log juga dibuat untuk setiap aktivitas **login** dan **logout**.
+- **Keamanan & Performa**:
+  - **Validasi input** menggunakan **Joi** untuk mencegah data yang tidak valid.
+  - **Rate Limiting** untuk membatasi permintaan per IP.
+  - **Caching** data pengguna di Redis untuk meningkatkan performa.
 
-## Fitur
+---
 
-1. **Autentikasi & Otorisasi**
-   - Login: `/api/auth/login`
-   - Refresh Token: `/api/auth/refresh`
-   - Logout: `/api/auth/logout`
-   - JWT + Refresh Token (disimpan di Redis)
-   - Audit log untuk login & logout
+## 🛠️ Prasyarat
+Pastikan Anda sudah menginstal aplikasi berikut:
+- **Node.js v18** atau versi lebih baru.
+- **npm** atau **yarn**.
+- **Docker** dan **Docker Compose**.
 
-2. **User Management**
-   - CRUD User (admin only)
-   - Update profil (user sendiri)
-   - Export CSV
-   - Pagination, filter, sort
-   - Soft delete
-   - Audit log untuk setiap create, update, delete
+---
 
-3. **Audit Log**
-   - Semua CREATE / UPDATE / DELETE dicatat di tabel `audit_logs`
+## 🚀 Setup Proyek
 
-4. **Keamanan**
-   - Input validation (Joi)
-   - Rate limiting (max 100 requests / 10 menit per IP)
-   - Logging requestId (Winston)
-
-## Prasyarat
-
-- Node.js v18
-- npm / yarn
-- Docker & Docker Compose
-- MySQL & Redis (via Docker atau lokal)
-
-## Setup Project
-
-1. **Clone repository**
-
+### 1. Clone Repositori dan Instal Dependensi
 ```bash
 git clone <REPO_URL>
 cd backend
-Install dependencies
-
-bash
-Salin kode
 npm install
-Buat file environment .env
+2. Konfigurasi Environment
+Buat file .env di direktori root proyek dan isi dengan konfigurasi berikut:
 
-env
-Salin kode
 PORT=3000
-
 # MySQL
-DB_HOST=mysql
-DB_NAME=testdb
-DB_USER=user
-DB_PASSWORD=password
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=db_express
+DB_USER=root      
+DB_PASSWORD=rizki123       
 
 # Redis
-REDIS_HOST=redis
+REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 
 # JWT
 JWT_SECRET=supersecret
-Jalankan Docker (MySQL + Redis)
 
-bash
-Salin kode
+3. Jalankan Layanan dengan Docker
+Gunakan Docker Compose untuk menjalankan database MySQL dan Redis:
+
+Bash
+
 docker-compose up -d
-Jalankan migration & seeder
+4. Migrasi dan Seeder Database
+Jalankan migrasi database dan seeder untuk mengisi data awal (2 admin dan 2 user):
 
-bash
-Salin kode
-npx sequelize-cli db:migrate
-npx sequelize-cli db:seed:all
-Jalankan backend (development)
+Bash
 
-bash
-Salin kode
+npm sequelize-cli db:migrate
+npm sequelize-cli db:seed:all
+
+5. Jalankan Aplikasi
+Untuk menjalankan server dalam mode pengembangan:
 npm run dev
-Server akan berjalan di: http://localhost:3000
+Aplikasi akan berjalan di http://localhost:3000. Anda bisa melakukan health check dengan mengakses http://localhost:3000/health.
 
-Health check: http://localhost:3000/health → { "status": "OK" }
-
-Build & production
-
-bash
-Salin kode
+6. Build & Produksi
+Untuk build dan menjalankan mode produksi:
 npm run build
 npm start
-Endpoint API
-Auth
-Endpoint	Method	Body	Role	Keterangan
-/api/auth/login	POST	{ username, password }	Semua	Login, return access + refresh token
-/api/auth/refresh	POST	{ refreshToken }	Semua	Refresh token, rotate refresh
-/api/auth/logout	POST	-	Authenticated	Hapus refresh token, audit log
 
+📄 Endpoint API
+Otentikasi
+Endpoint	Method	Body	Role	Keterangan
+/api/auth/login	POST	{ username, password }	Semua	Login, mengembalikan access token dan refresh token.
+/api/auth/refresh	POST	{ refreshToken }	Semua	Memperbarui access token dan merotasi refresh token.
+/api/auth/logout	POST	-	Authenticated	Menghapus refresh token dan mencatat di audit log.
+
+Export to Sheets
 Users
 Endpoint	Method	Body	Role	Keterangan
-/api/users	GET	-	admin	List users (pagination, filter, sort, cache Redis)
-/api/users/:id	GET	-	admin/user	Detail user (cache Redis)
-/api/users	POST	{ name, username, password, confirm_password, role }	admin	Create user + audit log
-/api/users/:id	PUT	{ name, username, role }	admin/user	Update user + audit log
-/api/users/:id/password	PUT	{ password, confirm_password }	admin/user	Update password
-/api/users/:id	DELETE	{ confirm_password }	admin	Soft delete user
-/api/users/export	GET	-	admin	Export CSV users
+/api/users	GET	-	admin	Menampilkan daftar pengguna (dengan pagination, filter, dan sorting).
+/api/users/:id	GET	-	admin, user	Menampilkan detail pengguna.
+/api/users	POST	{ name, username, password, confirm_password, role }	admin	Membuat pengguna baru.
+/api/users/:id	PUT	{ name, username, role }	admin, user	Memperbarui detail pengguna.
+/api/users/:id/password	PUT	{ password, confirm_password }	admin, user	Memperbarui password pengguna.
+/api/users/:id	DELETE	{ confirm_password }	admin	Menghapus pengguna secara soft delete.
+/api/users/export	GET	-	admin	Mengekspor data pengguna ke CSV.
 
-Testing
-Unit & integration test:
+Export to Sheets
+🧪 Testing
+Proyek ini memiliki Unit dan Integration Test. Untuk menjalankannya, pastikan MySQL dan Redis sedang aktif:
 
-bash
-Salin kode
+Bash
+
 npm run test
-Coverage minimal 80%
+Target code coverage minimal adalah 80%.
 
-Pastikan Redis & MySQL aktif saat testing
+📁 Struktur Proyek
+Struktur folder dirancang secara modular untuk memisahkan fungsi berdasarkan perannya, seperti: controllers, services, models, middleware, utils, dan validators.
 
-Code Quality
-ESLint + Prettier
+📝 Catatan Tambahan
+Refresh Token di-rotasi setiap kali digunakan.
 
-Struktur folder modular: controllers, services, models, middleware, utils, validators
+Data daftar dan detail pengguna di-cache di Redis dengan TTL (Time-to-Live) 60 detik.
 
-Docker
-Dockerfile sudah tersedia
+Semua perubahan data (CREATE, UPDATE, DELETE) secara otomatis dicatat di tabel audit_logs.
 
-docker-compose.yml jalankan backend + MySQL + Redis
-
-Port backend: 3000
-
-bash
-Salin kode
-docker-compose up -d
-Database
-Tables: users, audit_logs
-
-Seeder: 2 admin + 2 user (dummy)
-
-Soft delete: deleted_at pada users
-
-Audit log otomatis untuk semua perubahan data
-
-Export CSV mendukung data besar
-
-Notes
-Refresh token di-rotate setiap pemakaian
-
-Redis TTL: 60 detik untuk cache list & detail user
-
-Semua perubahan data dicatat di audit_logs
-
-Export CSV mendukung data besar
-```
+Fitur export CSV dirancang untuk menangani volume data yang besar secara efisien.
