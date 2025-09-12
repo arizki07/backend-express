@@ -166,12 +166,55 @@ npm start
 
 <h2>📁 Struktur Proyek</h2>
 <ul>
-  <li>controllers</li>
-  <li>services</li>
-  <li>models</li>
-  <li>middleware</li>
-  <li>validators</li>
-  <li>utils</li>
+  <li><strong>controllers:</strong> Berisi logika bisnis utama untuk menangani permintaan HTTP dan mengontrol alur aplikasi.</li>
+  <li><strong>database:</strong> Folder terkait dengan manajemen database.
+    <ul>
+      <li><strong>migrations:</strong> Skrip untuk mengelola perubahan skema database.</li>
+      <li><strong>procedures:</strong> Prosedur tersimpan (stored procedures) untuk database.</li>
+    </ul>
+  </li>
+  <li><strong>middleware:</strong> Fungsi-fungsi yang dieksekusi di antara permintaan dan respons.
+    <ul>
+      <li><strong>audit.middleware.ts:</strong> Middleware untuk melacak aktivitas audit.</li>
+      <li><strong>auth.middleware.ts:</strong> Middleware untuk otentikasi.</li>
+      <li><strong>rbac.middleware.ts:</strong> Middleware untuk kontrol akses berbasis peran (Role-Based Access Control).</li>
+      <li><strong>validate.middleware.ts:</strong> Middleware untuk validasi data.</li>
+    </ul>
+  </li>
+  <li><strong>models:</strong> Mendefinisikan struktur data dan interaksi dengan database.
+    <ul>
+      <li><strong>audit_log.model.ts:</strong> Model untuk log audit.</li>
+      <li><strong>index.ts:</strong> File indeks untuk model.</li>
+      <li><strong>user.model.ts:</strong> Model untuk data pengguna.</li>
+    </ul>
+  </li>
+  <li><strong>routes:</strong> Mendefinisikan endpoint API.
+    <ul>
+      <li><strong>audit.route.ts:</strong> Rute untuk API audit.</li>
+      <li><strong>auth.route.ts:</strong> Rute untuk API otentikasi.</li>
+      <li><strong>user.route.ts:</strong> Rute untuk API pengguna.</li>
+    </ul>
+  </li>
+  <li><strong>services:</strong> Berisi logika bisnis yang dapat digunakan kembali.
+    <ul>
+      <li><strong>audit.service.ts:</strong> Layanan untuk fungsionalitas audit.</li>
+      <li><strong>auth.service.ts:</strong> Layanan untuk fungsionalitas otentikasi.</li>
+      <li><strong>user.service.ts:</strong> Layanan untuk fungsionalitas pengguna.</li>
+    </ul>
+  </li>
+  <li><strong>utils:</strong> Kumpulan fungsi utilitas atau pembantu.
+    <ul>
+      <li><strong>copy-report.ts:</strong> Utilitas untuk menyalin laporan.</li>
+      <li><strong>hash.ts:</strong> Utilitas untuk hashing.</li>
+      <li><strong>redisCache.ts:</strong> Utilitas untuk cache Redis.</li>
+    </ul>
+  </li>
+  <li><strong>validators:</strong> Logika untuk memvalidasi input data.
+    <ul>
+      <li><strong>auth.validator.ts:</strong> Validator untuk data otentikasi.</li>
+      <li><strong>user.validator.ts:</strong> Validator untuk data pengguna.</li>
+    </ul>
+  </li>
 </ul>
 
 <hr/>
