@@ -1,4 +1,15 @@
+import { Op } from 'sequelize';
 import { AuditLog } from '../models/audit_log.model';
+
+interface GetAuditParams {
+  page?: number;
+  limit?: number;
+  q?: string; // filter by entity
+  sortBy?: 'created_at';
+  sortDir?: 'asc' | 'desc';
+  createdFrom?: string;
+  createdTo?: string;
+}
 
 export const createAudit = async (
   actor_id: number,
@@ -42,4 +53,49 @@ const removeSensitiveFields = (data: object): object => {
   });
 
   return cleanedData;
+};
+
+export const getAuditLogs = async (params: GetAuditParams) => {
+  const {
+    page = 1,
+    limit = 10,
+    q,
+    sortBy = 'created_at',
+    sortDir = 'desc',
+    createdFrom,
+    createdTo,
+  } = params;
+
+  const offset = (page - 1) * limit;
+
+  const where: any = {};
+
+  if (q) {
+    where.entity = { [Op.like]: `%${q}%` };
+  }
+
+  if (createdFrom || createdTo) {
+    where.created_at = {};
+    if (createdFrom) where.created_at[Op.gte] = new Date(createdFrom);
+    if (createdTo) where.created_at[Op.lte] = new Date(createdTo);
+  }
+
+  const { count: totalData, rows } = await AuditLog.findAndCountAll({
+    where,
+    limit,
+    offset,
+    order: [[sortBy, sortDir]],
+  });
+
+  const totalPage = Math.ceil(totalData / limit);
+
+  return {
+    data: rows,
+    meta: {
+      totalData,
+      totalPage,
+      currentPage: page,
+      perPage: limit,
+    },
+  };
 };

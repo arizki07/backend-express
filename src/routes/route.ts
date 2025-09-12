@@ -27,6 +27,7 @@ import {
   updateUserSchema,
   updatePasswordSchema,
 } from '../validators/user.validator';
+import { getAudits } from '../controllers/audit.controller';
 
 const router = Router();
 router.use(autoAudit());
@@ -439,5 +440,87 @@ router.put(
  *         description: Password konfirmasi salah
  */
 router.delete('/users/:id', authenticate, authorize(['admin']), deleteUserController);
+
+/**
+ * @openapi
+ * /audits:
+ *   get:
+ *     tags: [Audits]
+ *     summary: Ambil daftar audit logs
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Nomor halaman
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Jumlah data per halaman
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Filter berdasarkan entity
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [created_at]
+ *           default: created_at
+ *         description: Kolom untuk sorting
+ *       - in: query
+ *         name: sortDir
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Arah sorting
+ *       - in: query
+ *         name: createdFrom
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter mulai dari tanggal (YYYY-MM-DD)
+ *       - in: query
+ *         name: createdTo
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter sampai tanggal (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: Daftar audit logs berhasil diambil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/AuditLog'
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     totalData:
+ *                       type: integer
+ *                     totalPage:
+ *                       type: integer
+ *                     currentPage:
+ *                       type: integer
+ *                     perPage:
+ *                       type: integer
+ */
+router.get('/audits', authenticate, authorize(['admin']), getAudits);
 
 export default router;
