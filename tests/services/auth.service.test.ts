@@ -1,5 +1,10 @@
 // tests/services/auth.service.test.ts
-import { loginService, refreshService, logoutService } from '../../src/services/auth.service';
+import {
+  loginService,
+  refreshService,
+  logoutService,
+  meService,
+} from '../../src/services/auth.service';
 import { User } from '../../src/models/user.model';
 import { redisClient } from '../../src/config/redis';
 import { comparePassword } from '../../src/utils/hash';
@@ -126,60 +131,123 @@ describe('Auth Service', () => {
     });
   });
 
-  // --- logoutService Tests ---
-  describe('logoutService', () => {
-    it('should delete all tokens for a given user ID', async () => {
-      const token1 = 'token_user_1_a';
-      const token2 = 'token_user_1_b';
-      const token3 = 'token_user_2_c';
+  // MeService Tests ---
+  describe('meService', () => {
+    const mockUserMe = {
+      id: 1,
+      name: 'John Doe',
+      username: 'johndoe',
+      role: 'user',
+      created_by: 1,
+      updated_by: 1,
+      created_at: new Date(),
+      updated_at: new Date(),
+      deleted_at: null,
+    };
 
-      // Mock Redis keys and values
-      (redisClient.keys as jest.Mock).mockResolvedValue([
-        `token_${token1}`,
-        `token_${token2}`,
-        `token_${token3}`,
-      ]);
-      (redisClient.get as jest.Mock)
-        .mockResolvedValueOnce(token1)
-        .mockResolvedValueOnce(token2)
-        .mockResolvedValueOnce(token3);
-      (jwt.verify as jest.Mock)
-        .mockReturnValueOnce({ id: 1, role: 'user' })
-        .mockReturnValueOnce({ id: 1, role: 'user' })
-        .mockReturnValueOnce({ id: 2, role: 'admin' });
-      (redisClient.del as jest.Mock).mockResolvedValue(1);
-
-      await logoutService(1);
-
-      expect(redisClient.keys).toHaveBeenCalledWith('token_*');
-      expect(redisClient.get).toHaveBeenCalledTimes(3);
-      expect(jwt.verify).toHaveBeenCalledTimes(3);
-      expect(redisClient.del).toHaveBeenCalledTimes(2);
-      expect(redisClient.del).toHaveBeenCalledWith(`token_${token1}`);
-      expect(redisClient.del).toHaveBeenCalledWith(`token_${token2}`);
-      expect(redisClient.del).not.toHaveBeenCalledWith(`token_${token3}`);
+    beforeEach(() => {
+      jest.clearAllMocks();
     });
 
-    // Test baru untuk menutupi skenario nilai null pada Redis
-    it('should handle invalid or missing tokens gracefully', async () => {
-      const token1 = 'token_user_1_a';
-      const invalidToken = 'token_user_1_b'; // Token ini akan di-mock sebagai null
+    it('should return user data if user exists', async () => {
+      (User.findOne as jest.Mock).mockResolvedValue(mockUserMe);
 
-      (redisClient.keys as jest.Mock).mockResolvedValue([
-        `token_${token1}`,
-        `token_${invalidToken}`,
-      ]);
-      (redisClient.get as jest.Mock).mockResolvedValueOnce(token1).mockResolvedValueOnce(null); // Memastikan `value` adalah null
+      const result = await meService(1);
 
-      (jwt.verify as jest.Mock).mockReturnValueOnce({ id: 1, role: 'user' });
-      (redisClient.del as jest.Mock).mockResolvedValue(1);
+      expect(User.findOne).toHaveBeenCalledWith({
+        where: { id: 1 },
+        attributes: [
+          'id',
+          'name',
+          'username',
+          'role',
+          'created_by',
+          'updated_by',
+          'created_at',
+          'updated_at',
+          'deleted_at',
+        ],
+      });
 
-      await logoutService(1);
+      expect(result).toEqual(mockUserMe);
+    });
 
-      expect(redisClient.keys).toHaveBeenCalledWith('token_*');
-      expect(redisClient.get).toHaveBeenCalledTimes(2);
-      expect(redisClient.del).toHaveBeenCalledTimes(1); // Hanya dipanggil sekali untuk token yang valid
-      expect(redisClient.del).toHaveBeenCalledWith(`token_${token1}`);
+    it('should throw error if user not found', async () => {
+      (User.findOne as jest.Mock).mockResolvedValue(null);
+
+      await expect(meService(999)).rejects.toThrow('User not found');
+
+      expect(User.findOne).toHaveBeenCalledWith({
+        where: { id: 999 },
+        attributes: [
+          'id',
+          'name',
+          'username',
+          'role',
+          'created_by',
+          'updated_by',
+          'created_at',
+          'updated_at',
+          'deleted_at',
+        ],
+      });
+    });
+
+    // --- logoutService Tests ---
+    describe('logoutService', () => {
+      it('should delete all tokens for a given user ID', async () => {
+        const token1 = 'token_user_1_a';
+        const token2 = 'token_user_1_b';
+        const token3 = 'token_user_2_c';
+
+        // Mock Redis keys and values
+        (redisClient.keys as jest.Mock).mockResolvedValue([
+          `token_${token1}`,
+          `token_${token2}`,
+          `token_${token3}`,
+        ]);
+        (redisClient.get as jest.Mock)
+          .mockResolvedValueOnce(token1)
+          .mockResolvedValueOnce(token2)
+          .mockResolvedValueOnce(token3);
+        (jwt.verify as jest.Mock)
+          .mockReturnValueOnce({ id: 1, role: 'user' })
+          .mockReturnValueOnce({ id: 1, role: 'user' })
+          .mockReturnValueOnce({ id: 2, role: 'admin' });
+        (redisClient.del as jest.Mock).mockResolvedValue(1);
+
+        await logoutService(1);
+
+        expect(redisClient.keys).toHaveBeenCalledWith('token_*');
+        expect(redisClient.get).toHaveBeenCalledTimes(3);
+        expect(jwt.verify).toHaveBeenCalledTimes(3);
+        expect(redisClient.del).toHaveBeenCalledTimes(2);
+        expect(redisClient.del).toHaveBeenCalledWith(`token_${token1}`);
+        expect(redisClient.del).toHaveBeenCalledWith(`token_${token2}`);
+        expect(redisClient.del).not.toHaveBeenCalledWith(`token_${token3}`);
+      });
+
+      // Test baru untuk menutupi skenario nilai null pada Redis
+      it('should handle invalid or missing tokens gracefully', async () => {
+        const token1 = 'token_user_1_a';
+        const invalidToken = 'token_user_1_b'; // Token ini akan di-mock sebagai null
+
+        (redisClient.keys as jest.Mock).mockResolvedValue([
+          `token_${token1}`,
+          `token_${invalidToken}`,
+        ]);
+        (redisClient.get as jest.Mock).mockResolvedValueOnce(token1).mockResolvedValueOnce(null); // Memastikan `value` adalah null
+
+        (jwt.verify as jest.Mock).mockReturnValueOnce({ id: 1, role: 'user' });
+        (redisClient.del as jest.Mock).mockResolvedValue(1);
+
+        await logoutService(1);
+
+        expect(redisClient.keys).toHaveBeenCalledWith('token_*');
+        expect(redisClient.get).toHaveBeenCalledTimes(2);
+        expect(redisClient.del).toHaveBeenCalledTimes(1); // Hanya dipanggil sekali untuk token yang valid
+        expect(redisClient.del).toHaveBeenCalledWith(`token_${token1}`);
+      });
     });
   });
 });

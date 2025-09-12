@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for models/audit_log.model.ts</title>
+    <title>Code coverage report for validators/user.validator.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,7 +19,7 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">models</a> audit_log.model.ts</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">validators</a> user.validator.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
@@ -83,26 +83,9 @@
 <a name='L18'></a><a href='#L18'>18</a>
 <a name='L19'></a><a href='#L19'>19</a>
 <a name='L20'></a><a href='#L20'>20</a>
-<a name='L21'></a><a href='#L21'>21</a>
-<a name='L22'></a><a href='#L22'>22</a>
-<a name='L23'></a><a href='#L23'>23</a>
-<a name='L24'></a><a href='#L24'>24</a>
-<a name='L25'></a><a href='#L25'>25</a>
-<a name='L26'></a><a href='#L26'>26</a>
-<a name='L27'></a><a href='#L27'>27</a>
-<a name='L28'></a><a href='#L28'>28</a>
-<a name='L29'></a><a href='#L29'>29</a>
-<a name='L30'></a><a href='#L30'>30</a>
-<a name='L31'></a><a href='#L31'>31</a>
-<a name='L32'></a><a href='#L32'>32</a>
-<a name='L33'></a><a href='#L33'>33</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L21'></a><a href='#L21'>21</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -116,49 +99,30 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../config/db';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import Joi from "joi";
 &nbsp;
-// Declare the properties on the class for TypeScript
-export class AuditLog extends Model {
-  public id!: number;
-  public actor_id!: number;
-  public entity!: string;
-  public entity_id!: number;
-  public action!: string;
-  public before!: object;
-  public after!: object;
-  public created_at!: Date;
-}
+export const createUserSchema = Joi.object({
+  name: Joi.string().min(4).max(100).required(),
+  username: Joi.string().min(4).max(100).required(),
+  password: Joi.string().min(8).max(100).required(),
+  confirm_password: Joi.any().valid(Joi.ref("password")).required(),
+  role: Joi.string().valid("admin", "user").required(),
+});
 &nbsp;
-AuditLog.init(
-  {
-    id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    actor_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
-    entity: { type: DataTypes.STRING(50), allowNull: false },
-    entity_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
-    action: { type: DataTypes.STRING(20), allowNull: false },
-    before: { type: DataTypes.JSON, allowNull: true },
-    after: { type: DataTypes.JSON, allowNull: true },
-    created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  },
-  { sequelize, tableName: 'audit_logs', timestamps: false },
-);
+export const updateUserSchema = Joi.object({
+  name: Joi.string().min(4).max(100),
+  username: Joi.string().min(4).max(100),
+  role: Joi.string().valid("admin", "user"),
+});
+&nbsp;
+export const updatePasswordSchema = Joi.object({
+  password: Joi.string().min(8).max(100).required(),
+  confirm_password: Joi.any().valid(Joi.ref("password")).required(),
+});
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->

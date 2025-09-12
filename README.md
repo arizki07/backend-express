@@ -84,6 +84,7 @@ JWT_SECRET=supersecret
 </code></pre>
 
 <h3>3. Jalankan Layanan dengan Docker</h3>
+<p>Semua layanan (MySQL & Redis) dapat dijalankan dengan:</p>
 <pre><code>docker-compose up -d
 </code></pre>
 
@@ -105,59 +106,14 @@ npm start
 
 <hr/>
 
-<h2>📄 Endpoint API</h2>
-
-<h3>Otentikasi</h3>
-<table>
-  <tr>
-    <th>Endpoint</th><th>Method</th><th>Body</th><th>Role</th><th>Keterangan</th>
-  </tr>
-  <tr>
-    <td>/api/auth/login</td><td>POST</td><td>{ username, password }</td><td>Semua</td><td>Login, mengembalikan access token & refresh token</td>
-  </tr>
-  <tr>
-    <td>/api/auth/refresh</td><td>POST</td><td>{ refreshToken }</td><td>Semua</td><td>Perbarui access token & rotasi refresh token</td>
-  </tr>
-  <tr>
-    <td>/api/auth/logout</td><td>POST</td><td>-</td><td>Authenticated</td><td>Hapus refresh token & catat audit log</td>
-  </tr>
-</table>
-
-<h3>Users</h3>
-<table>
-  <tr>
-    <th>Endpoint</th><th>Method</th><th>Body</th><th>Role</th><th>Keterangan</th>
-  </tr>
-  <tr>
-    <td>/api/users</td><td>GET</td><td>-</td><td>admin</td><td>Daftar pengguna (pagination, filter, sorting)</td>
-  </tr>
-  <tr>
-    <td>/api/users/:id</td><td>GET</td><td>-</td><td>admin, user</td><td>Detail pengguna</td>
-  </tr>
-  <tr>
-    <td>/api/users</td><td>POST</td><td>{ name, username, password, confirm_password, role }</td><td>admin</td><td>Buat pengguna baru</td>
-  </tr>
-  <tr>
-    <td>/api/users/:id</td><td>PUT</td><td>{ name, username, role }</td><td>admin, user</td><td>Update detail pengguna</td>
-  </tr>
-  <tr>
-    <td>/api/users/:id/password</td><td>PUT</td><td>{ password, confirm_password }</td><td>admin, user</td><td>Update password pengguna</td>
-  </tr>
-  <tr>
-    <td>/api/users/:id</td><td>DELETE</td><td>{ confirm_password }</td><td>admin</td><td>Soft delete pengguna</td>
-  </tr>
-  <tr>
-    <td>/api/users/export</td><td>GET</td><td>-</td><td>admin</td><td>Export CSV pengguna</td>
-  </tr>
-</table>
-
-<h3>Dokumentasi Swagger/OpenAPI</h3>
-<p>Semua endpoint bisa diakses di <a href="http://localhost:3000/api-docs">http://localhost:3000/api-docs</a>. Swagger menampilkan schema request/response, parameter, dan autentikasi Bearer token.</p>
-
-<hr/>
-
 <h2>🧪 Testing</h2>
-<p>Unit & Integration Test tersedia. Pastikan MySQL & Redis aktif:</p>
+<p>Unit & Integration Test tersedia untuk semua service, termasuk:</p>
+<ul>
+  <li><strong>Auth Service:</strong> login, logout, refresh, me</li>
+  <li><strong>User Service:</strong> CRUD pengguna, password update, audit log</li>
+  <li><strong>Audit Service:</strong> pencatatan aktivitas</li>
+</ul>
+<p>Pastikan MySQL & Redis aktif, lalu jalankan:</p>
 <pre><code>npm run test
 </code></pre>
 <p>Target code coverage minimal 80%</p>
@@ -166,55 +122,26 @@ npm start
 
 <h2>📁 Struktur Proyek</h2>
 <ul>
-  <li><strong>controllers:</strong> Berisi logika bisnis utama untuk menangani permintaan HTTP dan mengontrol alur aplikasi.</li>
-  <li><strong>database:</strong> Folder terkait dengan manajemen database.
+  <li><strong>controllers:</strong> Logika bisnis untuk permintaan HTTP.</li>
+  <li><strong>database:</strong>
     <ul>
-      <li><strong>migrations:</strong> Skrip untuk mengelola perubahan skema database.</li>
-      <li><strong>procedures:</strong> Prosedur tersimpan (stored procedures) untuk database.</li>
+      <li><strong>migrations:</strong> Skrip perubahan skema database.</li>
+      <li><strong>procedures:</strong> Stored procedures database.</li>
     </ul>
   </li>
-  <li><strong>middleware:</strong> Fungsi-fungsi yang dieksekusi di antara permintaan dan respons.
+  <li><strong>middleware:</strong>
     <ul>
       <li><strong>audit.middleware.ts:</strong> Middleware untuk melacak aktivitas audit.</li>
-      <li><strong>auth.middleware.ts:</strong> Middleware untuk otentikasi.</li>
-      <li><strong>rbac.middleware.ts:</strong> Middleware untuk kontrol akses berbasis peran (Role-Based Access Control).</li>
-      <li><strong>validate.middleware.ts:</strong> Middleware untuk validasi data.</li>
+      <li><strong>auth.middleware.ts:</strong> Middleware otentikasi.</li>
+      <li><strong>rbac.middleware.ts:</strong> Middleware Role-Based Access Control.</li>
+      <li><strong>validate.middleware.ts:</strong> Middleware validasi data.</li>
     </ul>
   </li>
-  <li><strong>models:</strong> Mendefinisikan struktur data dan interaksi dengan database.
-    <ul>
-      <li><strong>audit_log.model.ts:</strong> Model untuk log audit.</li>
-      <li><strong>index.ts:</strong> File indeks untuk model.</li>
-      <li><strong>user.model.ts:</strong> Model untuk data pengguna.</li>
-    </ul>
-  </li>
-  <li><strong>routes:</strong> Mendefinisikan endpoint API.
-    <ul>
-      <li><strong>audit.route.ts:</strong> Rute untuk API audit.</li>
-      <li><strong>auth.route.ts:</strong> Rute untuk API otentikasi.</li>
-      <li><strong>user.route.ts:</strong> Rute untuk API pengguna.</li>
-    </ul>
-  </li>
-  <li><strong>services:</strong> Berisi logika bisnis yang dapat digunakan kembali.
-    <ul>
-      <li><strong>audit.service.ts:</strong> Layanan untuk fungsionalitas audit.</li>
-      <li><strong>auth.service.ts:</strong> Layanan untuk fungsionalitas otentikasi.</li>
-      <li><strong>user.service.ts:</strong> Layanan untuk fungsionalitas pengguna.</li>
-    </ul>
-  </li>
-  <li><strong>utils:</strong> Kumpulan fungsi utilitas atau pembantu.
-    <ul>
-      <li><strong>copy-report.ts:</strong> Utilitas untuk menyalin laporan.</li>
-      <li><strong>hash.ts:</strong> Utilitas untuk hashing.</li>
-      <li><strong>redisCache.ts:</strong> Utilitas untuk cache Redis.</li>
-    </ul>
-  </li>
-  <li><strong>validators:</strong> Logika untuk memvalidasi input data.
-    <ul>
-      <li><strong>auth.validator.ts:</strong> Validator untuk data otentikasi.</li>
-      <li><strong>user.validator.ts:</strong> Validator untuk data pengguna.</li>
-    </ul>
-  </li>
+  <li><strong>models:</strong> Struktur data dan interaksi dengan database.</li>
+  <li><strong>routes:</strong> Endpoint API.</li>
+  <li><strong>services:</strong> Logika bisnis yang dapat digunakan ulang.</li>
+  <li><strong>utils:</strong> Fungsi utilitas seperti hashing & caching Redis.</li>
+  <li><strong>validators:</strong> Validator untuk input data.</li>
 </ul>
 
 <hr/>
@@ -224,5 +151,5 @@ npm start
   <li>Refresh Token dirotasi setiap digunakan.</li>
   <li>Data pengguna di-cache di Redis dengan TTL 60 detik.</li>
   <li>Semua perubahan data dicatat di tabel <code>audit_logs</code>.</li>
-  <li>Fitur export CSV dirancang untuk menangani volume data besar.</li>
+  <li>Fitur export CSV dirancang untuk volume data besar.</li>
 </ul>

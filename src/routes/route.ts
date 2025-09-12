@@ -366,7 +366,7 @@ router.post(
 router.put(
   '/users/:id',
   authenticate,
-  authorize(['admin']),
+  authorize(['user', 'admin']),
   validate(updateUserSchema),
   updateUserController,
 );

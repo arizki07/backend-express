@@ -8,7 +8,7 @@ import { User } from '../../src/models/user.model';
 User.init(
   {
     id: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -16,8 +16,8 @@ User.init(
     username: { type: DataTypes.STRING(100), allowNull: false, unique: true },
     password_hash: { type: DataTypes.STRING, allowNull: false },
     role: { type: DataTypes.ENUM('admin', 'user'), allowNull: false },
-    created_by: { type: DataTypes.INTEGER.UNSIGNED },
-    updated_by: { type: DataTypes.INTEGER.UNSIGNED },
+    created_by: { type: DataTypes.INTEGER },
+    updated_by: { type: DataTypes.INTEGER },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     deleted_at: { type: DataTypes.DATE, allowNull: true },

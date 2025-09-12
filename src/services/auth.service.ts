@@ -61,6 +61,7 @@ export const refreshService = async (oldToken: string) => {
   };
 };
 
+// Belum disertakan di test
 export const meService = async (userId: number) => {
   const user = await (User as typeof User).findOne({
     where: { id: userId },

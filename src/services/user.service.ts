@@ -53,10 +53,12 @@ export const getUsersService = async (query: any) => {
   };
 };
 
+// Belum disertakan di test
 export const getUserByIdService = async (id: number) => {
   return await User.findOne({ where: { id, deleted_at: null } });
 };
 
+// Belum disertakan di test
 export const createUserService = async (data: any, actorId: number) => {
   const password_hash = await hashPassword(data.password);
   const user = await User.create({
@@ -111,17 +113,24 @@ export const updatePasswordService = async (
 };
 
 export const deleteUserService = async (id: number, actorId: number, req?: Request) => {
-  const user = await User.findByPk(id);
+  const user = await User.findByPk(id, { paranoid: false });
   if (!user) throw new Error('User not found');
 
-  // simpan BEFORE
+  // audit before
   if (req) {
     req.res!.locals.__audit = req.res!.locals.__audit || {};
     req.res!.locals.__audit.before = user.toJSON();
     req.res!.locals.__audit.entityId = id;
   }
 
-  await user.update({ deleted_at: new Date(), updated_by: actorId });
+  // soft delete via Sequelize
+  await user.destroy();
+
+  // update updated_by via Model.update langsung
+  await User.update(
+    { updated_by: actorId },
+    { where: { id }, paranoid: false }, // paranoid: false valid di sini
+  );
 
   return user;
 };
