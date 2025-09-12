@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { limiter } from './middleware/rateLimiter.middleware';
 import { requestIdMiddleware } from './config/logger';
 import apiRoutes from './routes/route'; // <-- gabungan auth + user
+import { setupSwagger } from './config/swagger';
 
 const app = express();
 
@@ -18,7 +19,7 @@ app.use(requestIdMiddleware);
 
 // Semua route di-handle oleh satu router dengan prefix /api
 app.use('/api', apiRoutes);
-
+setupSwagger(app);
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'OK' }));
 
