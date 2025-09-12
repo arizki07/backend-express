@@ -9,6 +9,7 @@ import {
   loginController,
   refreshController,
   logoutController,
+  meController,
 } from '../controllers/auth.controller';
 import {
   getUsersController,
@@ -17,7 +18,7 @@ import {
   updateUserController,
   updatePasswordController,
   deleteUserController,
-  exportUserCSVController,
+  exportUsersController,
 } from '../controllers/user.controller';
 
 import { loginSchema } from '../validators/auth.validator';
@@ -182,6 +183,35 @@ router.post('/auth/refresh', refreshController);
 
 /**
  * @openapi
+ * /auth/me:
+ *   get:
+ *     tags: [Auth]
+ *     summary: Ambil data user yang sedang login
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Data user berhasil diambil
+ *         content:
+ *           application/json:
+ *             example:
+ *               data:
+ *                 id: 1
+ *                 name: "Admin User"
+ *                 username: "admin"
+ *                 role: "admin"
+ *                 created_by: 0
+ *                 updated_by: 0
+ *                 created_at: "2025-09-12T08:00:00Z"
+ *                 updated_at: "2025-09-12T09:00:00Z"
+ *                 deleted_at: null
+ *       401:
+ *         description: Token tidak valid atau user tidak ditemukan
+ */
+router.get('/auth/me', authenticate, meController);
+
+/**
+ * @openapi
  * /auth/logout:
  *   post:
  *     tags: [Auth]
@@ -193,6 +223,20 @@ router.post('/auth/refresh', refreshController);
  *         description: Logout berhasil, refresh token dihapus
  */
 router.post('/auth/logout', authenticate, logoutController);
+
+/**
+ * @openapi
+ * /users/export:
+ *   get:
+ *     tags: [Users]
+ *     summary: Export data user ke CSV
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: File CSV berhasil diunduh
+ */
+router.get('/users/export', authenticate, authorize(['admin']), exportUsersController);
 
 /**
  * @openapi
@@ -395,19 +439,5 @@ router.put(
  *         description: Password konfirmasi salah
  */
 router.delete('/users/:id', authenticate, authorize(['admin']), deleteUserController);
-
-/**
- * @openapi
- * /users/export:
- *   get:
- *     tags: [Users]
- *     summary: Export data user ke CSV
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: File CSV berhasil diunduh
- */
-router.get('/users/export', authenticate, authorize(['admin']), exportUserCSVController);
 
 export default router;

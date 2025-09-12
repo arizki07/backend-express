@@ -61,6 +61,27 @@ export const refreshService = async (oldToken: string) => {
   };
 };
 
+export const meService = async (userId: number) => {
+  const user = await (User as typeof User).findOne({
+    where: { id: userId },
+    attributes: [
+      'id',
+      'name',
+      'username',
+      'role',
+      'created_by',
+      'updated_by',
+      'created_at',
+      'updated_at',
+      'deleted_at',
+    ],
+  });
+
+  if (!user) throw new Error('User not found');
+
+  return user;
+};
+
 export const logoutService = async (userId: number) => {
   // Hapus semua token terkait user
   const keys = await redisClient.keys(`token_*`);

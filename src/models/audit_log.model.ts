@@ -1,7 +1,17 @@
-import { DataTypes, Model } from "sequelize";
-import { sequelize } from "../config/db";
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/db';
 
-export class AuditLog extends Model {}
+// Declare the properties on the class for TypeScript
+export class AuditLog extends Model {
+  public id!: number;
+  public actor_id!: number;
+  public entity!: string;
+  public entity_id!: number;
+  public action!: string;
+  public before!: object;
+  public after!: object;
+  public created_at!: Date;
+}
 
 AuditLog.init(
   {
@@ -18,5 +28,5 @@ AuditLog.init(
     after: { type: DataTypes.JSON, allowNull: true },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
-  { sequelize, tableName: "audit_logs", timestamps: false }
+  { sequelize, tableName: 'audit_logs', timestamps: false },
 );
