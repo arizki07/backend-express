@@ -28,8 +28,99 @@ import {
 } from '../validators/user.validator';
 
 const router = Router();
-
 router.use(autoAudit());
+
+/**
+ * @openapi
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *   schemas:
+ *     LoginRequest:
+ *       type: object
+ *       required:
+ *         - username
+ *         - password
+ *       properties:
+ *         username:
+ *           type: string
+ *           minLength: 4
+ *           maxLength: 100
+ *         password:
+ *           type: string
+ *           minLength: 8
+ *           maxLength: 100
+ *     LoginResponse:
+ *       type: object
+ *       properties:
+ *         data:
+ *           type: object
+ *           properties:
+ *             token:
+ *               type: string
+ *               description: JWT access token
+ *             user:
+ *               type: object
+ *               description: Data lengkap user tanpa password
+ *             expiredAt:
+ *               type: string
+ *               format: date-time
+ *     UserCreate:
+ *       type: object
+ *       required:
+ *         - name
+ *         - username
+ *         - password
+ *         - confirm_password
+ *         - role
+ *       properties:
+ *         name:
+ *           type: string
+ *           minLength: 4
+ *           maxLength: 100
+ *         username:
+ *           type: string
+ *           minLength: 4
+ *           maxLength: 100
+ *         password:
+ *           type: string
+ *           minLength: 8
+ *           maxLength: 100
+ *         confirm_password:
+ *           type: string
+ *           minLength: 8
+ *           maxLength: 100
+ *         role:
+ *           type: string
+ *           enum: [admin, user]
+ *     UserUpdate:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         username:
+ *           type: string
+ *         role:
+ *           type: string
+ *           enum: [admin, user]
+ *     UpdatePassword:
+ *       type: object
+ *       required:
+ *         - password
+ *         - confirm_password
+ *       properties:
+ *         password:
+ *           type: string
+ *           minLength: 8
+ *           maxLength: 100
+ *         confirm_password:
+ *           type: string
+ *           minLength: 8
+ *           maxLength: 100
+ */
 
 /**
  * @openapi
@@ -42,16 +133,23 @@ router.use(autoAudit());
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [username, password]
- *             properties:
- *               username:
- *                 type: string
- *               password:
- *                 type: string
+ *             $ref: '#/components/schemas/LoginRequest'
  *     responses:
  *       200:
  *         description: Login berhasil
+ *         content:
+ *           application/json:
+ *             example:
+ *               data:
+ *                 token: "jwt-access-token"
+ *                 user:
+ *                   id: 1
+ *                   username: "admin"
+ *                   name: "Admin User"
+ *                   role: "admin"
+ *                 expiredAt: "2025-09-12T10:00:00Z"
+ *       401:
+ *         description: Username atau password salah
  */
 router.post('/auth/login', validate(loginSchema), loginController);
 
@@ -61,9 +159,24 @@ router.post('/auth/login', validate(loginSchema), loginController);
  *   post:
  *     tags: [Auth]
  *     summary: Refresh token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [refreshToken]
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: Refresh token yang tersimpan di Redis
  *     responses:
  *       200:
  *         description: Token diperbarui
+ *         content:
+ *           application/json:
+ *             example:
+ *               token: "new-jwt-access-token"
  */
 router.post('/auth/refresh', refreshController);
 
@@ -77,7 +190,7 @@ router.post('/auth/refresh', refreshController);
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Logout berhasil
+ *         description: Logout berhasil, refresh token dihapus
  */
 router.post('/auth/logout', authenticate, logoutController);
 
@@ -89,9 +202,42 @@ router.post('/auth/logout', authenticate, logoutController);
  *     summary: Ambil semua user
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Nomor halaman
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Jumlah data per halaman
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Filter nama/username
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *           enum: [admin,user]
+ *         description: Filter role
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *         description: Field untuk sorting
+ *       - in: query
+ *         name: sortDir
+ *         schema:
+ *           type: string
+ *           enum: [asc,desc]
+ *         description: Arah sorting
  *     responses:
  *       200:
- *         description: Daftar user
+ *         description: Daftar user dengan metadata pagination
  */
 router.get('/users', authenticate, authorize(['admin']), getUsersController);
 
@@ -109,9 +255,12 @@ router.get('/users', authenticate, authorize(['admin']), getUsersController);
  *         schema:
  *           type: integer
  *         required: true
+ *         description: ID user
  *     responses:
  *       200:
  *         description: Data user
+ *       404:
+ *         description: User tidak ditemukan
  */
 router.get('/users/:id', authenticate, authorize(['admin']), getUserByIdController);
 
@@ -128,10 +277,12 @@ router.get('/users/:id', authenticate, authorize(['admin']), getUserByIdControll
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CreateUser'
+ *             $ref: '#/components/schemas/UserCreate'
  *     responses:
  *       201:
  *         description: User berhasil dibuat
+ *       400:
+ *         description: Validasi input gagal
  */
 router.post(
   '/users',
@@ -155,15 +306,18 @@ router.post(
  *         schema:
  *           type: integer
  *         required: true
+ *         description: ID user
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UpdateUser'
+ *             $ref: '#/components/schemas/UserUpdate'
  *     responses:
  *       200:
  *         description: User berhasil diupdate
+ *       404:
+ *         description: User tidak ditemukan
  */
 router.put(
   '/users/:id',
@@ -187,21 +341,18 @@ router.put(
  *         schema:
  *           type: integer
  *         required: true
+ *         description: ID user
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [password, confirm_password]
- *             properties:
- *               password:
- *                 type: string
- *               confirm_password:
- *                 type: string
+ *             $ref: '#/components/schemas/UpdatePassword'
  *     responses:
  *       200:
  *         description: Password berhasil diupdate
+ *       400:
+ *         description: Password confirmation tidak cocok
  */
 router.put(
   '/users/:id/password',
@@ -216,7 +367,7 @@ router.put(
  * /users/{id}:
  *   delete:
  *     tags: [Users]
- *     summary: Hapus user
+ *     summary: Hapus user (soft delete)
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -225,9 +376,23 @@ router.put(
  *         schema:
  *           type: integer
  *         required: true
+ *         description: ID user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [confirm_password]
+ *             properties:
+ *               confirm_password:
+ *                 type: string
+ *                 description: Password admin untuk konfirmasi
  *     responses:
  *       200:
- *         description: User berhasil dihapus
+ *         description: User berhasil dihapus (soft delete)
+ *       400:
+ *         description: Password konfirmasi salah
  */
 router.delete('/users/:id', authenticate, authorize(['admin']), deleteUserController);
 
@@ -241,7 +406,7 @@ router.delete('/users/:id', authenticate, authorize(['admin']), deleteUserContro
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: File CSV
+ *         description: File CSV berhasil diunduh
  */
 router.get('/users/export', authenticate, authorize(['admin']), exportUserCSVController);
 
