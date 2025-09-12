@@ -1,52 +1,92 @@
 import { Request, Response } from 'express';
-import { User } from '../models/user.model';
 import { getCache, setCache } from '../utils/redisCache';
-import { createUserService } from '../services/user.service';
+import {
+  getUsersService,
+  getUserByIdService,
+  createUserService,
+  updateUserService,
+  updatePasswordService,
+  deleteUserService,
+} from '../services/user.service';
 import { exportCSV } from '../utils/csvExport';
-import { createAudit } from '../services/audit.service';
+import bcrypt from 'bcrypt';
+import { User } from '../models/user.model';
 
 export const getUsersController = async (req: Request, res: Response) => {
-  const { page = 1, limit = 10, q, role, sortBy = 'id', sortDir = 'ASC' } = req.query;
-  const cacheKey = `users_${page}_${limit}_${q}_${role}_${sortBy}_${sortDir}`;
+  const cacheKey = `users_${JSON.stringify(req.query)}`;
   const cached = await getCache(cacheKey);
   if (cached) return res.json(cached);
 
-  const offset = (+page - 1) * +limit;
-  const where: any = { deleted_at: null };
-  if (q) where.name = { $like: `%${q}%` };
-  if (role) where.role = role;
-
-  const { rows, count } = await User.findAndCountAll({
-    where,
-    limit: +limit,
-    offset,
-    order: [[sortBy as string, sortDir as string]],
-  });
-  const result = {
-    data: rows,
-    meta: {
-      totalData: count,
-      totalPage: Math.ceil(count / +limit),
-      currentPage: +page,
-      perPage: +limit,
-    },
-  };
+  const result = await getUsersService(req.query);
   await setCache(cacheKey, result, 60);
 
-  // Audit log view users
-  await createAudit((req as any).user.id, 'user', 0, 'VIEW_LIST');
-
   res.json(result);
+};
+
+export const getUserByIdController = async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id, 10);
+  const cacheKey = `user_${id}`;
+  const cached = await getCache(cacheKey);
+  if (cached) return res.json(cached);
+
+  const user = await getUserByIdService(id);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
+  await setCache(cacheKey, user, 60);
+  res.json(user);
 };
 
 export const createUserController = async (req: Request, res: Response) => {
   try {
     const actorId = (req as any).user.id;
     const user = await createUserService(req.body, actorId);
+    res.json(user);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+};
 
-    // Audit log create user
-    await createAudit(actorId, 'user', user.id, 'CREATE', null, user);
+export const updateUserController = async (req: Request, res: Response) => {
+  try {
+    const actorId = (req as any).user.id;
+    const id = parseInt(req.params.id, 10);
 
+    const user = await updateUserService(id, req.body, actorId, req);
+    res.json(user);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+export const updatePasswordController = async (req: Request, res: Response) => {
+  try {
+    const actorId = (req as any).user.id;
+    const id = parseInt(req.params.id, 10);
+    const { password, confirm_password } = req.body;
+
+    if (password !== confirm_password) {
+      return res.status(400).json({ message: 'Password confirmation does not match' });
+    }
+
+    const user = await updatePasswordService(id, password, actorId, req);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+export const deleteUserController = async (req: Request, res: Response) => {
+  try {
+    const actor = (req as any).user;
+    const id = parseInt(req.params.id, 10);
+    const { confirm_password } = req.body;
+
+    const admin = await User.findByPk(actor.id);
+    if (!admin) return res.status(401).json({ message: 'Unauthorized' });
+
+    const valid = await bcrypt.compare(confirm_password, admin.password_hash);
+    if (!valid) return res.status(400).json({ message: 'Invalid admin password confirmation' });
+
+    const user = await deleteUserService(id, actor.id, req);
     res.json(user);
   } catch (err: any) {
     res.status(400).json({ message: err.message });
@@ -54,15 +94,13 @@ export const createUserController = async (req: Request, res: Response) => {
 };
 
 export const exportUserCSVController = async (req: Request, res: Response) => {
-  const users = await User.findAll({ where: { deleted_at: null } });
+  const { data } = await getUsersService(req.query);
+
   const csv = exportCSV(
-    users.map((u) => u.toJSON()),
+    data.map((u) => u.toJSON()),
     ['id', 'name', 'username', 'role', 'created_at'],
     'users.csv',
   );
-
-  // Audit log export
-  await createAudit((req as any).user.id, 'user', 0, 'EXPORT_CSV');
 
   res.header('Content-Type', 'text/csv');
   res.attachment('users.csv');

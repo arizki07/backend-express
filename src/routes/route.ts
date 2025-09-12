@@ -2,8 +2,7 @@ import { Router } from 'express';
 import { validate } from '../middleware/validate.middleware';
 import { authenticate } from '../middleware/auth.middleware';
 import { authorize } from '../middleware/rbac.middleware';
-import { auditLog } from '../middleware/audit.middleware';
-import { User } from '../models/user.model';
+import { autoAudit } from '../middleware/audit.middleware';
 
 // Controllers
 import {
@@ -13,111 +12,62 @@ import {
 } from '../controllers/auth.controller';
 import {
   getUsersController,
+  getUserByIdController,
   createUserController,
+  updateUserController,
+  updatePasswordController,
+  deleteUserController,
   exportUserCSVController,
 } from '../controllers/user.controller';
 
 // Validators
 import { loginSchema } from '../validators/auth.validator';
-import { createUserSchema, updateUserSchema } from '../validators/user.validator';
+import {
+  createUserSchema,
+  updateUserSchema,
+  updatePasswordSchema,
+} from '../validators/user.validator';
 
 const router = Router();
 
+// 🔥 Auto audit untuk semua routes
+router.use(autoAudit());
+
 // --- AUTH ROUTES ---
-router.post(
-  '/auth/login',
-  validate(loginSchema),
-  auditLog({
-    action: 'LOGIN',
-    entity: 'unknown',
-    getAfter: async (req) => req.body,
-  }),
-  loginController,
-);
-
-router.post(
-  '/auth/refresh',
-  auditLog({
-    action: 'REFRESH',
-    entity: 'unknown',
-    getAfter: async (req) => req.body,
-  }),
-  refreshController,
-);
-
-router.post(
-  '/auth/logout',
-  authenticate,
-  auditLog({
-    action: 'LOGOUT',
-    entity: 'unknown',
-    getAfter: async (req) => req.body,
-  }),
-  logoutController,
-);
+router.post('/auth/login', validate(loginSchema), loginController);
+router.post('/auth/refresh', refreshController);
+router.post('/auth/logout', authenticate, logoutController);
 
 // --- USER ROUTES ---
-router.get(
-  '/users',
-  authenticate,
-  authorize(['admin']),
-  auditLog({ action: 'GET_USERS', entity: 'user', getAfter: async () => null }),
-  getUsersController,
-);
+router.get('/users', authenticate, authorize(['admin']), getUsersController);
+router.get('/users/:id', authenticate, authorize(['admin']), getUserByIdController);
 
 router.post(
   '/users',
   authenticate,
   authorize(['admin']),
   validate(createUserSchema),
-  auditLog({ action: 'CREATE_USER', entity: 'user', getAfter: async (req) => req.body }),
   createUserController,
 );
 
-// router.put(
-//   '/users/:id',
-//   authenticate,
-//   authorize(['admin']),
-//   validate(updateUserSchema),
-//   auditLog({
-//     action: 'UPDATE_USER',
-//     entity: 'user',
-//     getEntityId: (req) => parseInt(req.params.id, 10),
-//     getBefore: async (req) => {
-//       const user = await User.findByPk(req.params.id);
-//       return user ? user.toJSON() : null;
-//     },
-//     getAfter: async (req) => {
-//       const user = await User.findByPk(req.params.id);
-//       return user ? user.toJSON() : null;
-//     },
-//   }),
-//   updateUserController,
-// );
-
-// router.delete(
-//   '/users/:id',
-//   authenticate,
-//   authorize(['admin']),
-//   auditLog({
-//     action: 'DELETE_USER',
-//     entity: 'user',
-//     getEntityId: (req) => parseInt(req.params.id, 10),
-//     getBefore: async (req) => {
-//       const user = await User.findByPk(req.params.id);
-//       return user ? user.toJSON() : null;
-//     },
-//     getAfter: async () => null,
-//   }),
-//   deleteUserController,
-// );
-
-router.get(
-  '/users/export',
+router.put(
+  '/users/:id',
   authenticate,
   authorize(['admin']),
-  auditLog({ action: 'EXPORT_USERS', entity: 'user', getAfter: async () => null }),
-  exportUserCSVController,
+  validate(updateUserSchema),
+  updateUserController,
 );
+
+router.put(
+  '/users/:id/password',
+  authenticate,
+  authorize(['admin']),
+  validate(updatePasswordSchema),
+  updatePasswordController,
+);
+
+router.delete('/users/:id', authenticate, authorize(['admin']), deleteUserController);
+
+router.get('/users/export', authenticate, authorize(['admin']), exportUserCSVController);
 
 export default router;
