@@ -143,8 +143,6 @@ npm run start:dev
 
 <p>Health check: <a href="http://localhost:3000/health">/health</a></p>
 
-<p>Dokumentasi API (Swagger/OpenAPI) dapat diakses di: <a href="http://localhost:3000/api-docs/">http://localhost:3000/api-docs/</a></p>
-
 <h3>6. Build & Produksi</h3>
 <pre><code>npm run build
 npm start
