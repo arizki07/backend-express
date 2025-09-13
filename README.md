@@ -89,15 +89,61 @@ JWT_SECRET=supersecret
 </code></pre>
 
 <h3>4. Migrasi & Seeder Database</h3>
-<p>Isi data awal 2 admin dan 2 user:</p>
-<pre><code>npm sequelize-cli db:migrate
-npm sequelize-cli db:seed:all
+<p>Sebelum menjalankan migrasi dan seeder, pastikan <strong>konfigurasi database</strong> di <code>config/config.json</code> sudah sesuai dengan lingkungan yang akan digunakan.</p>
+
+<pre><code class="json">
+{
+  "development": {
+    "username": "root",
+    "password": "rizki123",
+    "database": "db_express",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "root",
+    "password": "",
+    "database": "db_express",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": "",
+    "database": "db_express",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
 </code></pre>
 
-<h3>5. Jalankan Aplikasi</h3>
-<pre><code>npm run dev
+<p>Setelah konfigurasi selesai, jalankan perintah berikut untuk migrasi dan seeding database:</p>
+
+<pre><code class="bash">
+# Jalankan migrasi untuk membuat tabel
+npx sequelize-cli db:migrate
+
+# Jalankan seeder untuk mengisi data awal
+npx sequelize-cli db:seed:all
 </code></pre>
-<p>Aplikasi berjalan di <a href="http://localhost:3000">http://localhost:3000</a>. Health check: <a href="http://localhost:3000/health">/health</a></p>
+
+<p><strong>Catatan:</strong></p>
+<ul>
+  <li>Pastikan MySQL sudah berjalan sebelum menjalankan perintah di atas.</li>
+  <li>Gunakan <code>npx</code> agar sesuai dengan versi <code>sequelize-cli</code> yang terinstall di project Anda.</li>
+</ul>
+
+<h3>5. Jalankan Aplikasi</h3>
+
+<pre><code class="bash">
+npm run start:dev
+</code></pre>
+
+<p>Aplikasi berjalan di <a href="http://localhost:3000">http://localhost:3000</a></p>
+
+<p>Health check: <a href="http://localhost:3000/health">/health</a></p>
+
+<p>Dokumentasi API (Swagger/OpenAPI) dapat diakses di: <a href="http://localhost:3000/api-docs/">http://localhost:3000/api-docs/</a></p>
 
 <h3>6. Build & Produksi</h3>
 <pre><code>npm run build
@@ -107,16 +153,25 @@ npm start
 <hr/>
 
 <h2>🧪 Testing</h2>
+
 <p>Unit & Integration Test tersedia untuk semua service, termasuk:</p>
+
 <ul>
-  <li><strong>Auth Service:</strong> login, logout, refresh, me</li>
-  <li><strong>User Service:</strong> CRUD pengguna, password update, audit log</li>
+  <li><strong>Auth Service:</strong> login, logout, refresh token, me</li>
+  <li><strong>User Service:</strong> CRUD pengguna, update password, audit log</li>
   <li><strong>Audit Service:</strong> pencatatan aktivitas</li>
+  <li><strong>Validators:</strong> validasi input & pencatatan aktivitas</li>
+  <li><strong>Utils:</strong> utilitas umum & pencatatan aktivitas</li>
+  <li><strong>Model:</strong> definisi & interaksi database</li>
 </ul>
-<p>Pastikan MySQL & Redis aktif, lalu jalankan:</p>
-<pre><code>npm run test
+
+<p>Pastikan <strong>MySQL</strong> & <strong>Redis</strong> sudah aktif, lalu jalankan perintah berikut:</p>
+
+<pre><code class="bash">
+npx jest tests --coverage
 </code></pre>
-<p>Target code coverage minimal 80%</p>
+
+<p>Target <strong>code coverage</strong> minimal 80%</p>
 
 <hr/>
 
