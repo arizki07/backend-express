@@ -1,0 +1,442 @@
+{
+  "info": {
+    "_postman_id": "b255b9a5-a481-4994-9318-09566897318e",
+    "name": "backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44577205"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin12345\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh_JWT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU3NjQyMDk5LCJleHAiOjE3NTc2NDU2OTl9.CNXDQGhZhvSr6xrtrd39FKkMgWsKHgvPf-dHATH13PM\"\r\n}\r\n"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/refresh",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "auth", "refresh"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU3NjEzOTQ0LCJleHAiOjE3NTc2MTc1NDR9.dP5VCbp-aP_UqwaB9mk1TUw7kbqI52WokPT1jioF9xA",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU3NjEzOTQ0LCJleHAiOjE3NTc2MTc1NDR9.dP5VCbp-aP_UqwaB9mk1TUw7kbqI52WokPT1jioF9xA\"\r\n}\r\n"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/logout",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "auth", "logout"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU3NjU3MzA4LCJleHAiOjE3NTc2NjA5MDh9._eYXpnio_wNPrKKhMD00Bvsm-mTkIY29GfsaSTr3QtE",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/auth/me",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "auth", "me"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get All",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU3NjgwMzI5LCJleHAiOjE3NTc2ODM5Mjl9.HUiMiiDeVzxxvtQ86TYNemS8EsexjuJDXRi4Dc7T0iU",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin12345\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get By Id",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU3NjY2MzkxLCJleHAiOjE3NTc2Njk5OTF9.GqDJfrlnLOSBbPZUL2Uaxzhx0YB_AkZ9BAW_FMzBmS8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/2000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "2000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Export",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU3NjY2MzkxLCJleHAiOjE3NTc2Njk5OTF9.GqDJfrlnLOSBbPZUL2Uaxzhx0YB_AkZ9BAW_FMzBmS8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"anang jos\",\r\n  \"username\": \"anangjos\",\r\n  \"password\": \"Anang@1234\",\r\n  \"confirm_password\": \"Anang@1234\",\r\n  \"role\": \"user\"\r\n}\r\n"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/export?sortBy=LeonSatterfield2&sortDir=ASC",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "export"],
+              "query": [
+                {
+                  "key": "sortBy",
+                  "value": "LeonSatterfield2"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "ASC"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU3NjQxMTMyLCJleHAiOjE3NTc2NDQ3MzJ9.7jIHbRPbQrWeblSDxjoow_4K0pJ5zHnwi83ZPJ3HAV4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"anang dul\",\r\n  \"username\": \"anangdul\",\r\n  \"password\": \"Anandulg@1234\",\r\n  \"confirm_password\": \"Anandulg@1234\",\r\n  \"role\": \"user\"\r\n}\r\n"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU3NjgwMzI5LCJleHAiOjE3NTc2ODM5Mjl9.HUiMiiDeVzxxvtQ86TYNemS8EsexjuJDXRi4Dc7T0iU",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"update1\",\r\n  \"username\": \"update1\",\r\n  \"role\": \"user\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/5008",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "5008"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Password",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU3Njg3MDgxLCJleHAiOjE3NTc2OTA2ODF9.jq-ZuEH-6ue5wztQs10apUDRK6ERv4yGrZMGX_Hya7Q",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"password\": \"update@123\",\r\n  \"confirm_password\": \"update@123\"\r\n}\r\n"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/2/password",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "2", "password"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU3NjgwMzI5LCJleHAiOjE3NTc2ODM5Mjl9.HUiMiiDeVzxxvtQ86TYNemS8EsexjuJDXRi4Dc7T0iU",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"confirm_password\": \"admin12345\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/5007",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "5007"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Audit Get ALl",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU3Njk5NzI5LCJleHAiOjE3NTc3MDMzMjl9.afeP0a5DGXzVVmp3Mx21uF-ug-qP5niCA6vOuvtP5m8",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin12345\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/audits",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "audits"]
+        }
+      },
+      "response": []
+    }
+  ]
+}
