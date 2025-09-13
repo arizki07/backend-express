@@ -116,21 +116,15 @@ export const deleteUserService = async (id: number, actorId: number, req?: Reque
   const user = await User.findByPk(id, { paranoid: false });
   if (!user) throw new Error('User not found');
 
-  // audit before
   if (req) {
     req.res!.locals.__audit = req.res!.locals.__audit || {};
     req.res!.locals.__audit.before = user.toJSON();
     req.res!.locals.__audit.entityId = id;
   }
 
-  // soft delete via Sequelize
   await user.destroy();
 
-  // update updated_by via Model.update langsung
-  await User.update(
-    { updated_by: actorId },
-    { where: { id }, paranoid: false }, // paranoid: false valid di sini
-  );
+  await User.update({ updated_by: actorId }, { where: { id }, paranoid: false });
 
-  return user;
+  return { message: 'User deleted successfully' };
 };
